@@ -10,9 +10,10 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Sayınlar">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
-<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=2">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
+<link rel="manifest" href="manifest.webmanifest?v=2">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap">
 <style>
@@ -141,6 +142,43 @@ tr.cur td{background:var(--accent-soft)}
 .nitem .t{flex:1;min-width:0;overflow-wrap:anywhere}
 .nitem.done .t{text-decoration:line-through;color:var(--muted)}
 .nitem small{display:block;color:var(--muted);font-size:12px;text-decoration:none}
+.quick{display:flex;flex-direction:column;gap:12px}
+.qcat{display:flex;flex-direction:column;gap:6px;min-width:0}
+.qcat h4{margin:0;align-self:flex-start;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;
+  color:var(--accent);background:var(--accent-soft);border:1px solid var(--accent);border-radius:6px;padding:3px 9px}
+.chips{display:grid;grid-auto-flow:column;grid-template-rows:repeat(3,auto);grid-auto-columns:max-content;gap:6px;
+  overflow-x:auto;padding:2px 2px 8px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+.chip{font:inherit;font-size:13px;font-weight:500;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;
+  min-height:34px;padding:5px 11px;border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer;scroll-snap-align:start}
+.chip::before{content:"+";font-weight:700;color:var(--accent)}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.chip[aria-pressed="true"]::before{content:"✓";color:var(--surface)}
+.listhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.listhead h3{font-size:17px;font-weight:700}
+.listhead .wa.ghost{flex:0 0 auto;min-height:40px;padding:8px 14px;font-size:14px}
+.ngroup{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700;padding:12px 2px 4px;border-top:1px solid var(--line)}
+.ngroup:first-child{border-top:0;padding-top:4px}
+.ngroup+.nitem{border-top:0}
+.listbtns{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+/* Needs: shortcuts beside the list; shortcuts scroll vertically, list stays in view */
+.needgrid{display:grid;grid-template-columns:minmax(0,1fr) clamp(98px,23%,240px);gap:10px;align-items:start}
+.quickpanel{padding:10px;gap:8px;position:sticky;top:calc(env(safe-area-inset-top, 0px) + 84px)}
+.paneltitle{font-size:15px;font-weight:700}
+.quickpanel .quick{max-height:calc(100vh - 170px);overflow-y:auto;overscroll-behavior:contain;gap:10px;margin:0 -4px;padding:0 4px}
+.quickpanel .qcat h4{position:sticky;top:0;z-index:1;box-shadow:0 -6px 0 6px var(--surface),0 0 0 6px var(--surface)}
+.quickpanel .chips{display:flex;flex-direction:column;align-items:stretch;gap:5px;overflow:visible;padding:0}
+.quickpanel .chip{white-space:normal;text-align:left;justify-content:flex-start;line-height:1.25;width:100%}
+.listpanel{padding:12px;min-width:0;order:-1}
+.listpanel .listhead{flex-direction:column;align-items:stretch;gap:8px}
+.listpanel .listbtns>*{flex:1 1 auto;justify-content:center}
+.listpanel .nitem{gap:8px}
+.listpanel .del{font-size:18px;line-height:1;padding:8px 6px}
+.quickpanel{padding:8px 6px}
+.quickpanel .paneltitle{font-size:13px;padding:0 2px}
+.quickpanel .qcat h4{font-size:10px;padding:2px 6px;letter-spacing:.04em}
+.quickpanel .chip{font-size:12px;min-height:32px;padding:4px 7px;gap:3px;border-radius:7px}
+.quickpanel .chip::before{font-size:11px}
+.nitem.done small{text-decoration:none}
 .del{font:inherit;font-size:13px;border:0;background:none;color:var(--muted);cursor:pointer;padding:4px}
 .empty{color:var(--muted);padding:8px 2px}
 .note{font-size:13px;color:var(--muted);background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:12px 14px}
@@ -195,6 +233,14 @@ tr.cur td{background:var(--accent-soft)}
 .btn2.small{min-height:36px;padding:6px 12px;font-size:14px}
 .sharetext{margin:0;white-space:pre-wrap;font-family:var(--body);font-size:14px;line-height:1.45;background:var(--accent-soft);
   border-radius:12px;padding:10px 12px;max-height:38vh;overflow:auto}
+.mini{position:fixed;left:0;right:0;bottom:0;z-index:29;
+  padding:0 max(12px, env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px))}
+.miniin{max-width:560px;margin:0 auto;display:flex;align-items:center;gap:10px;background:var(--fg);color:var(--bg);
+  border-radius:16px;padding:8px 8px 8px 16px;box-shadow:0 8px 30px rgba(60,25,0,.25);font-weight:600}
+.miniin span{flex:1;min-width:0}
+.miniin .wa{min-height:42px;padding:8px 14px;font-size:15px}
+.miniclose{font:inherit;font-size:22px;line-height:1;width:40px;height:40px;border:0;border-radius:10px;background:none;color:var(--bg);cursor:pointer}
+body.hasmini .wrap{padding-bottom:calc(96px + env(safe-area-inset-bottom, 0px))}
 .sharenote{margin:0;font-size:12.5px;color:var(--muted);text-align:center}
 .view{display:flex;flex-direction:column;gap:14px}
 .maintabs{position:sticky;top:env(safe-area-inset-top, 0px);z-index:20;display:grid;grid-template-columns:1fr 1fr;gap:6px;
@@ -314,12 +360,31 @@ body{-webkit-tap-highlight-color:transparent}
       <h2>Evin ihtiyaçları</h2>
       <span class="legend" id="needcount"></span>
     </div>
-    <div class="needs">
+    <div class="needs addcard">
       <form class="add" id="addform">
-        <input id="needinput" type="text" enterkeyhint="done" autocomplete="off" placeholder="Örn. bulaşık deterjanı, tuvalet kağıdı…" maxlength="80" aria-label="Yeni ihtiyaç">
+        <input id="needinput" type="text" enterkeyhint="done" autocomplete="off" placeholder="Listede olmayan bir ürün yazın…" maxlength="80" aria-label="Yeni ihtiyaç">
         <button class="btn" type="submit">Ekle</button>
       </form>
+    </div>
+    <div class="needgrid">
+    <div class="needs quickpanel">
+      <h3 class="paneltitle">Kısayollar</h3>
+      <div class="quick" id="quick"></div>
+    </div>
+    <div class="needs listpanel">
+      <div class="listhead">
+        <h3>Alışveriş listesi</h3>
+        <span class="listbtns" id="listshare"></span>
+      </div>
+      <div class="confirm" id="clearconfirm" hidden>
+        <span>Listedeki tüm ürünler silinsin mi?</span>
+        <div class="acctbtns">
+          <button type="button" class="btn danger" id="clearyes">Evet, temizle</button>
+          <button type="button" class="btn2" id="clearno">Vazgeç</button>
+        </div>
+      </div>
       <ul class="nlist" id="needs"></ul>
+    </div>
     </div>
   </section>
 
@@ -334,6 +399,14 @@ body{-webkit-tap-highlight-color:transparent}
     <input id="pininput" type="password" inputmode="numeric" autocomplete="current-password" enterkeyhint="go" aria-label="Ev şifresi">
     <button class="btn" type="submit">Giriş</button>
   </form>
+</div>
+
+<div class="mini" id="mini" hidden>
+  <div class="miniin">
+    <span id="minitext"></span>
+    <a class="wa" id="minilink" href="https://wa.me/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 2.5a9.4 9.4 0 0 0-8.1 14.2L2.6 21.4l4.8-1.3A9.4 9.4 0 1 0 12 2.5Zm0 1.8a7.6 7.6 0 1 1-3.9 14.1l-.3-.2-2.8.8.8-2.7-.2-.3A7.6 7.6 0 0 1 12 4.3Zm-3.1 3.9c-.2 0-.5.1-.7.3-.3.3-.9.9-.9 2.2s.9 2.5 1 2.7c.1.2 1.8 2.9 4.5 3.9 2.2.9 2.7.7 3.2.7.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.2-.2-.5-.3l-1.6-.8c-.2-.1-.4-.1-.6.1l-.7.9c-.1.2-.3.2-.5.1-.3-.1-1-.4-1.9-1.2-.7-.6-1.2-1.4-1.3-1.6-.1-.3 0-.4.1-.5l.4-.4.3-.4v-.4l-.7-1.8c-.2-.4-.4-.4-.5-.4h-.5Z"/></svg>Paylaş</a>
+    <button type="button" class="miniclose" id="miniclose" aria-label="Kapat">×</button>
+  </div>
 </div>
 
 <div class="share" id="share" hidden>
@@ -428,6 +501,26 @@ function reminderMsg(){
   if(!d.aidat){lines.push("",`Aidat: ${tl(aidat)}`); if(acct) lines.push(acctText())}
   return lines.join("\n");
 }
+const CATS=[
+  {k:"mutfak",name:"Mutfak",items:["Ekmek","Damacana Su","Şişe Su","Glutensiz Ekmek","Glutensiz Un","Limon","Patates","Salatalık","Marul","Havuç","Mercimek","Susam","Maden Suyu","Soğan","Sarımsak","Ananas","Muz","Portakal","Mandalina","Şeftali","Karpuz","Kavun","Pirinç","Bulgur","Makarna","Elma","Toz Şeker","Tuz","Kabartma Tozu","İnstant Maya","Tereyağı","Peynir Çeşitleri","Zeytin Çeşitleri","Biber","Dolmalık Biber","Kapya Biber"]},
+  {k:"bakim",name:"Ev Bakım",items:["Çamaşır Yumuşatıcı","Şampuan","El Sabunu","Sıvı Sabun","Bulaşık Makine Deterjanı","Bulaşık Deterjanı","Çamaşır Suyu","Toz Deterjan","Tuvalet Kağıdı","Havlu Kağıt"]}
+];
+const norm=t=>t.trim().toLocaleLowerCase("tr-TR");
+function catOf(text){const t=norm(text);const c=CATS.find(c=>c.items.some(i=>norm(i)===t));return c?c.name:"Diğer"}
+function groupedOpen(){
+  const open=needs.filter(n=>!n.done).sort((a,b)=>(a.at||0)-(b.at||0));
+  const order=[...CATS.map(c=>c.name),"Diğer"];
+  return order.map(name=>({name,items:open.filter(n=>catOf(n.text)===name)})).filter(g=>g.items.length);
+}
+function listMsg(headline){
+  const groups=groupedOpen(), total=groups.reduce((a,g)=>a+g.items.length,0);
+  const lines=["🛒 *Ankara Sayınlar · Alışveriş Listesi*"];
+  if(headline) lines.push(headline);
+  if(!total){lines.push("","Alınacak bir şey kalmadı ✅");return lines.join("\n")}
+  for(const g of groups){lines.push("",`*${g.name}*`);for(const n of g.items) lines.push(`• ${n.text}`)}
+  lines.push("",`Toplam ${total} ürün`);
+  return lines.join("\n");
+}
 function needsLeft(){
   const open=needs.filter(n=>!n.done).map(n=>n.text);
   return open.length?`\nListede kalanlar: ${open.join(", ")}`:"\nAlınacak başka bir şey kalmadı.";
@@ -439,7 +532,7 @@ function waBtn(text,label){
 function offerShare(text){
   $("#sharetext").textContent=text;
   $("#sharelink").href=waUrl(text);
-  $("#share").hidden=false;
+  $("#share").hidden=false; hideMini();
 }
 
 function render(){
@@ -515,15 +608,24 @@ function render(){
   const open=needs.filter(n=>!n.done).length;
   $("#needcount").textContent=needs.length?`${open} alınacak`:"";
   const nc=$("#navcount"); nc.textContent=open; nc.hidden=!open;
-  const sorted=[...needs].sort((x,y)=>(x.done-y.done)||((y.at||0)-(x.at||0)));
-  if(!sorted.length) ul.append(el("li",{class:"empty"},"Liste boş. Evde biten bir şey olunca yukarıya yazıp ekleyin."));
-  for(const n of sorted){
+  const openKeys=new Set(needs.filter(n=>!n.done).map(n=>norm(n.text)));
+  document.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",String(openKeys.has(norm(c.dataset.item)))));
+  const ls=$("#listshare"); ls.replaceChildren(); if(open) ls.append(waBtn(listMsg(),"Listeyi paylaş"));
+  if(needs.length&&!readOnly) ls.append(el("button",{type:"button",class:"btn2 small",onclick:()=>{$("#clearconfirm").hidden=false}},"Listeyi temizle"));
+  if(!needs.length) $("#clearconfirm").hidden=true;
+  const rows=[];
+  for(const g of groupedOpen()){rows.push({h:g.name});g.items.forEach(n=>rows.push(n))}
+  const doneItems=needs.filter(n=>n.done).sort((x,y)=>(y.at||0)-(x.at||0));
+  if(doneItems.length){rows.push({h:"Alındı"});doneItems.forEach(n=>rows.push(n))}
+  if(!rows.length) ul.append(el("li",{class:"empty"},"Liste boş. Yukarıdaki ürünlere dokunarak ya da yazarak ekleyin."));
+  for(const n of rows){
+    if(n.h){ul.append(el("li",{class:"ngroup"},n.h));continue}
     const cb=el("input",{type:"checkbox",class:"chk",id:`need-${n.id}`,"aria-label":`${n.text} alındı`,disabled:readOnly}); cb.checked=!!n.done;
     cb.addEventListener("change",()=>{saveNeed(n.id,{...n,done:cb.checked});
-      if(cb.checked) offerShare(`✔️ Ankara Sayınlar · Alındı: ${n.text}${needsLeft()}`);});
+      if(cb.checked) offerShare(listMsg(`✔️ Alındı: ${n.text}`));});
     ul.append(el("li",{class:"nitem"+(n.done?" done":"")},cb,
-      el("div",{class:"t"},n.text),
-      readOnly?null:el("button",{type:"button",class:"del","aria-label":`${n.text} sil`,onclick:()=>delNeed(n.id)},"Sil")));
+      el("div",{class:"t"},n.text,n.at?el("small",{},`${fmtDate(n.at)} eklendi`):null),
+      readOnly?null:el("button",{type:"button",class:"del","aria-label":`${n.text} sil`,title:"Sil",onclick:()=>delNeed(n.id)},"✕")));
   }
 }
 
@@ -541,6 +643,45 @@ async function toggle(id,k,val){
 async function saveNeed(id,obj){
   const {id:_,...body}=obj; needs=needs.map(n=>n.id===id?{...obj}:n); render();
   put("needs/"+id,body);
+}
+const fmtDate=t=>{const d=new Date(t);return d.toLocaleDateString("tr-TR",{day:"numeric",month:"long"})+" "+d.toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"})};
+function clearList(){
+  const ids=needs.map(n=>n.id);
+  $("#clearconfirm").hidden=true; hideMini();
+  ids.forEach(id=>delNeed(id));
+}
+function offerList(){
+  const open=needs.filter(n=>!n.done).length;
+  if(!open){hideMini();return}
+  $("#minitext").textContent=`🛒 Listede ${open} ürün`;
+  $("#minilink").href=waUrl(listMsg());
+  $("#mini").hidden=false; document.body.classList.add("hasmini");
+}
+function hideMini(){$("#mini").hidden=true;document.body.classList.remove("hasmini")}
+function addNeed(text){
+  if(needs.some(n=>!n.done&&norm(n.text)===norm(text))) return;
+  const id="n"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  const body={text,done:false,at:Date.now()};
+  needs=[...needs,{id,...body}]; render();
+  offerList();
+  put("needs/"+id,body);
+}
+function buildChips(){
+  const q=$("#quick");
+  for(const c of CATS){
+    const box=el("div",{class:"chips",role:"group","aria-label":c.name});
+    for(const it of c.items){
+      const b=el("button",{type:"button",class:"chip","data-item":it,"aria-pressed":"false"},it);
+      b.addEventListener("click",()=>{
+        if(readOnly) return;
+        const ex=needs.find(n=>!n.done&&norm(n.text)===norm(it));
+        if(ex){ delNeed(ex.id); offerList(); }
+        else addNeed(it);
+      });
+      box.append(b);
+    }
+    q.append(el("div",{class:"qcat"},el("h4",{},c.name),box));
+  }
 }
 async function delNeed(id){
   needs=needs.filter(n=>n.id!==id); render();
@@ -609,18 +750,18 @@ $("#feeform").addEventListener("submit",async e=>{
   put("settings/aidat",{amount:aidat});
 });
 $("#shareclose").addEventListener("click",()=>{$("#share").hidden=true});
+$("#miniclose").addEventListener("click",hideMini);
+$("#clearyes").addEventListener("click",clearList);
+$("#clearno").addEventListener("click",()=>{$("#clearconfirm").hidden=true});
+$("#minilink").addEventListener("click",()=>setTimeout(hideMini,400));
 $("#sharelink").addEventListener("click",()=>{setTimeout(()=>{$("#share").hidden=true},400)});
-document.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>{view=b.dataset.go;try{localStorage.setItem("ev-view",view)}catch(e){}render();window.scrollTo(0,0)}));
+document.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>{view=b.dataset.go;try{localStorage.setItem("ev-view",view)}catch(e){}hideMini();render();window.scrollTo(0,0)}));
 document.querySelectorAll("[data-page]").forEach(b=>b.addEventListener("click",()=>{page=+b.dataset.page;render()}));
 $("#addform").addEventListener("submit",async e=>{
   e.preventDefault();
   const inp=$("#needinput"), text=inp.value.trim(); if(!text||readOnly) return;
   inp.value="";
-  const body={text,done:false,at:Date.now()};
-  const id="n"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
-  needs=[...needs,{id,...body}]; render();
-  offerShare(`🛒 Ankara Sayınlar · Eve alınacak: ${text}${needsLeft()}`);
-  put("needs/"+id,body);
+  addNeed(text);
 });
 
 // ---- Google E-Tablo bağlantısı (Apps Script web uygulaması) ----
@@ -673,6 +814,7 @@ $("#gateform").addEventListener("submit",async e=>{
   catch(err){ if(err.message!=="pin") showGate("Bağlantı kurulamadı. İnternet bağlantınızı kontrol edin.") }
 });
 
+buildChips();
 // İlk açılış: son bilinen veriyle hemen göster, sonra E-Tablodan güncelle
 try{const s=JSON.parse(localStorage.getItem("ev-local")||"null");if(s){months=s.months||{};needs=s.needs||[];if(s.aidat>0)aidat=s.aidat;if(s.acct!==undefined)acct=s.acct}}catch(e){}
 render();
