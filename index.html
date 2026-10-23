@@ -139,7 +139,7 @@ tr.cur td{background:var(--accent-soft)}
 .btn{font:inherit;font-weight:600;padding:10px 16px;border-radius:10px;border:0;background:var(--accent);color:var(--surface);cursor:pointer}
 .nlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
 .nitem{display:flex;gap:12px;align-items:center;padding:10px 2px;border-top:1px solid var(--line)}
-.nitem .t{flex:1;min-width:0;overflow-wrap:anywhere}
+.nitem .t{flex:1;min-width:0;overflow-wrap:break-word}
 .nitem.done .t{text-decoration:line-through;color:var(--muted)}
 .nitem small{display:block;color:var(--muted);font-size:12px;text-decoration:none}
 .quick{display:flex;flex-direction:column;gap:12px}
@@ -160,24 +160,25 @@ tr.cur td{background:var(--accent-soft)}
 .ngroup:first-child{border-top:0;padding-top:4px}
 .ngroup+.nitem{border-top:0}
 .listbtns{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-/* Needs: shortcuts beside the list; shortcuts scroll vertically, list stays in view */
-.needgrid{display:grid;grid-template-columns:minmax(0,1fr) clamp(98px,23%,240px);gap:10px;align-items:start}
-.quickpanel{padding:10px;gap:8px;position:sticky;top:calc(env(safe-area-inset-top, 0px) + 84px)}
-.paneltitle{font-size:15px;font-weight:700}
-.quickpanel .quick{max-height:calc(100vh - 170px);overflow-y:auto;overscroll-behavior:contain;gap:10px;margin:0 -4px;padding:0 4px}
-.quickpanel .qcat h4{position:sticky;top:0;z-index:1;box-shadow:0 -6px 0 6px var(--surface),0 0 0 6px var(--surface)}
-.quickpanel .chips{display:flex;flex-direction:column;align-items:stretch;gap:5px;overflow:visible;padding:0}
+/* Needs: shortcuts drawer beside the list — closed = slim tab, open = wide panel */
+.needgrid{display:grid;grid-template-columns:minmax(0,1fr) 46px;gap:10px;align-items:start;transition:grid-template-columns .28s ease}
+.needgrid.open{grid-template-columns:minmax(0,1fr) minmax(0,47%)}
+.quickpanel{padding:0;gap:0;overflow:hidden;position:sticky;top:calc(env(safe-area-inset-top, 0px) + 84px);min-width:0}
+.drawerbtn{font:inherit;font-weight:700;font-size:15px;color:var(--accent);background:var(--accent-soft);border:0;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:200px;padding:14px 0;writing-mode:vertical-rl;letter-spacing:.04em}
+.drawerbtn svg{width:20px;height:20px;flex:none;transition:transform .28s ease;transform:rotate(180deg)}
+.needgrid.open .drawerbtn{writing-mode:horizontal-tb;min-height:46px;padding:10px 12px;justify-content:space-between;background:var(--accent);color:var(--surface)}
+.needgrid.open .drawerbtn svg{transform:rotate(0deg)}
+.quickpanel .quick{display:none;max-height:calc(100vh - 190px);overflow-y:auto;overscroll-behavior:contain;gap:12px;padding:10px}
+.needgrid.open .quickpanel .quick{display:flex}
+.quickpanel .qcat h4{position:sticky;top:-10px;z-index:1;box-shadow:0 -8px 0 6px var(--surface),0 0 0 6px var(--surface)}
+.quickpanel .chips{display:flex;flex-direction:column;align-items:stretch;gap:6px;overflow:visible;padding:0}
 .quickpanel .chip{white-space:normal;text-align:left;justify-content:flex-start;line-height:1.25;width:100%}
 .listpanel{padding:12px;min-width:0;order:-1}
 .listpanel .listhead{flex-direction:column;align-items:stretch;gap:8px}
 .listpanel .listbtns>*{flex:1 1 auto;justify-content:center}
 .listpanel .nitem{gap:8px}
 .listpanel .del{font-size:18px;line-height:1;padding:8px 6px}
-.quickpanel{padding:8px 6px}
-.quickpanel .paneltitle{font-size:13px;padding:0 2px}
-.quickpanel .qcat h4{font-size:10px;padding:2px 6px;letter-spacing:.04em}
-.quickpanel .chip{font-size:12px;min-height:32px;padding:4px 7px;gap:3px;border-radius:7px}
-.quickpanel .chip::before{font-size:11px}
 .nitem.done small{text-decoration:none}
 .del{font:inherit;font-size:13px;border:0;background:none;color:var(--muted);cursor:pointer;padding:4px}
 .empty{color:var(--muted);padding:8px 2px}
@@ -366,9 +367,9 @@ body{-webkit-tap-highlight-color:transparent}
         <button class="btn" type="submit">Ekle</button>
       </form>
     </div>
-    <div class="needgrid">
+    <div class="needgrid" id="needgrid">
     <div class="needs quickpanel">
-      <h3 class="paneltitle">Kısayollar</h3>
+      <button type="button" class="drawerbtn" id="drawerbtn" aria-expanded="false" aria-controls="quick"><span>Kısayollar</span><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
       <div class="quick" id="quick"></div>
     </div>
     <div class="needs listpanel">
@@ -751,6 +752,11 @@ $("#feeform").addEventListener("submit",async e=>{
 });
 $("#shareclose").addEventListener("click",()=>{$("#share").hidden=true});
 $("#miniclose").addEventListener("click",hideMini);
+let drawerOpen=false; try{drawerOpen=localStorage.getItem("ev-drawer")==="1"}catch(e){}
+function setDrawer(o){drawerOpen=o;$("#needgrid").classList.toggle("open",o);$("#drawerbtn").setAttribute("aria-expanded",String(o));
+  $("#drawerbtn").setAttribute("aria-label",o?"Kısayolları kapat":"Kısayolları aç");try{localStorage.setItem("ev-drawer",o?"1":"0")}catch(e){}}
+setDrawer(drawerOpen);
+$("#drawerbtn").addEventListener("click",()=>setDrawer(!drawerOpen));
 $("#clearyes").addEventListener("click",clearList);
 $("#clearno").addEventListener("click",()=>{$("#clearconfirm").hidden=true});
 $("#minilink").addEventListener("click",()=>setTimeout(hideMini,400));
