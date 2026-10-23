@@ -1,0 +1,16 @@
+{
+  "name": "Ankara Sayınlar",
+  "short_name": "Sayınlar",
+  "description": "Sırayla ödenen ev faturaları, aidat ve ev ihtiyaçları",
+  "lang": "tr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fdf6ef",
+  "theme_color": "#e8620c",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

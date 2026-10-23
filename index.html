@@ -1,0 +1,687 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ankara Sayınlar</title>
+<meta name="description" content="Ankara Sayınlar evi: sırayla ödenen faturalar, aidat ve ev ihtiyaçları">
+<meta name="theme-color" content="#e8620c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Sayınlar">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap">
+<style>
+html{color-scheme:light}
+:root{padding-top:env(safe-area-inset-top, 0px);padding-bottom:env(safe-area-inset-bottom, 0px)}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+/* Layout: one column of stacked sections — turn banner, three sibling boxes, schedule, shared shopping list */
+:root{
+  --bg:#fdf6ef; --surface:#ffffff; --fg:#2b1a0e; --muted:#8a6448; --line:#f1dcc8;
+  --accent:#e8620c; --accent-soft:#fde7d4;
+  --c-aybuke:#c2410c; --c-ezgican:#ea7a1a; --c-aybala:#d99a06;
+  --c-aybuke-soft:#fbe1d2; --c-ezgican-soft:#fdebd8; --c-aybala-soft:#fcf1d3;
+  --ok:#e8620c; --warn:#b45309;
+  /* Apple's SF Pro: served by the system on iPhone / Mac via -apple-system */
+  --display:-apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Helvetica Neue", Arial, sans-serif;
+  --body:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Helvetica Neue", Arial, sans-serif;
+  --mono:ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#1a120c; --surface:#251912; --fg:#fbeee2; --muted:#c09a7c; --line:#3d2a1c;
+  --accent:#ff8a3d; --accent-soft:#3d2414;
+  --c-aybuke:#ff8a5c; --c-ezgican:#ffa64d; --c-aybala:#f5c242;
+  --c-aybuke-soft:#3a1f14; --c-ezgican-soft:#382414; --c-aybala-soft:#352a12;
+  --ok:#ff8a3d; --warn:#fbbf6a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#1a120c; --surface:#251912; --fg:#fbeee2; --muted:#c09a7c; --line:#3d2a1c;
+  --accent:#ff8a3d; --accent-soft:#3d2414;
+  --c-aybuke:#ff8a5c; --c-ezgican:#ffa64d; --c-aybala:#f5c242;
+  --c-aybuke-soft:#3a1f14; --c-ezgican-soft:#382414; --c-aybala-soft:#352a12;
+  --ok:#ff8a3d; --warn:#fbbf6a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:980px;margin:0 auto;padding-block:20px 48px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));
+  display:flex;flex-direction:column;gap:28px}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance}
+h1{font-size:clamp(26px,6vw,36px);font-weight:800;letter-spacing:-.02em}
+h2{font-size:20px;font-weight:600}
+.top{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between}
+.sub{color:var(--muted);margin:2px 0 0}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.turn{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;
+  display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.turn .who{font-family:var(--display);font-size:clamp(20px,5vw,26px);font-weight:800}
+.turn .meta{color:var(--muted)}
+.turn .bar{flex:1 1 160px;min-width:0;height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+.turn .bar i{display:block;height:100%;background:var(--ok);transition:width .3s}
+
+.people{display:flex;flex-direction:column;gap:14px}
+.box.now{order:-1}
+.box.locked .bills{opacity:.6}
+.box.locked .chk{border-style:dashed}
+.lockmsg{font-size:13px;color:var(--muted);display:flex;gap:6px;align-items:center}
+.lockmsg svg{width:14px;height:14px;flex:none}
+.box{border-radius:16px;padding:18px;background:var(--soft);border:2px solid var(--line);display:flex;flex-direction:column;gap:12px}
+.box.now{border-color:var(--c)}
+.box h3{font-size:26px;font-weight:800;color:var(--c);line-height:1.1}
+.box .when{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap}
+.tag{font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:3px 9px;border-radius:99px;
+  background:var(--surface);color:var(--muted);border:1px solid var(--line)}
+.box.now .tag{background:var(--c);color:var(--surface);border-color:var(--c)}
+.month{font-weight:600}
+.bills{display:flex;flex-direction:column;gap:8px;list-style:none;margin:0;padding:0}
+.bill{background:var(--surface);border-radius:12px;padding:10px 12px;display:flex;gap:12px;align-items:center;border:1px solid var(--line)}
+.bill.done{border-color:var(--ok)}
+.bill .info{flex:1;min-width:0}
+.ico{flex:none;width:40px;height:40px;border-radius:11px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent)}
+.ico svg{width:24px;height:24px}
+.bill.done .ico{background:var(--accent);color:var(--surface)}
+.bill.done .ico svg [fill="var(--surface)"]{fill:var(--accent)}
+.bill.done .ico svg [stroke="var(--surface)"]{stroke:var(--accent)}
+.bill .name{font-weight:600}
+.bill.key{border:2px solid var(--accent);background:var(--accent-soft);padding:14px 12px}
+.bill.key .name{font-size:18px;font-weight:800;letter-spacing:-.01em}
+.bill.key .acc.fee{font-size:16px;font-weight:700;color:var(--accent)}
+.bill.key .ico{width:46px;height:46px;background:var(--accent);color:var(--surface)}
+.bill.key .ico svg{width:27px;height:27px}
+.bill.key .ico svg [fill="var(--surface)"]{fill:var(--accent)}
+.bill.key .ico svg [stroke="var(--surface)"]{stroke:var(--accent)}
+.bill.key .chk{border-color:var(--accent);width:38px;height:38px}
+.bill.key.done{background:var(--surface)}
+.bill .acc{font-family:var(--mono);font-size:12.5px;color:var(--muted);display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.acc .no{white-space:nowrap;color:var(--fg)}
+.copy{font:inherit;font-size:11.5px;border:0;background:none;color:var(--accent);cursor:pointer;padding:0;text-decoration:underline}
+.chk{appearance:none;-webkit-appearance:none;width:30px;height:30px;flex:none;border-radius:9px;border:2px solid var(--muted);
+  background:var(--surface);cursor:pointer;display:grid;place-items:center;transition:background .15s,border-color .15s}
+.chk:checked{background:var(--ok);border-color:var(--ok)}
+.chk:checked::after{content:"";width:9px;height:15px;border:solid var(--surface);border-width:0 3px 3px 0;transform:translateY(-2px) rotate(45deg)}
+.chk:disabled{cursor:default;opacity:.7}
+.paidby{font-size:12px;color:var(--ok)}
+.box .foot{font-size:13px;color:var(--muted)}
+
+section{display:flex;flex-direction:column;gap:12px}
+.sechead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.legend{font-size:13px;color:var(--muted)}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}
+.tabs button{font:inherit;font-weight:600;padding:9px 16px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;display:flex;flex-direction:column;align-items:flex-start;line-height:1.25}
+.tabs button small{font-weight:400;font-size:12px}
+.tabs button[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.tablewrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:14px}
+table{border-collapse:collapse;width:100%;min-width:520px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+tr:last-child td{border-bottom:0}
+tr.cur td{background:var(--accent-soft)}
+.pname{font-weight:600}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;vertical-align:middle}
+.pips{display:flex;gap:5px}
+.pip{width:24px;height:24px;border-radius:7px;display:grid;place-items:center;background:var(--line);color:var(--muted)}
+.pip svg{width:15px;height:15px}
+.pip svg [fill="var(--surface)"]{fill:var(--line)} .pip svg [stroke="var(--surface)"]{stroke:var(--line)}
+.pip.on{background:var(--ok);color:var(--surface)}
+.pip.on svg [fill="var(--surface)"]{fill:var(--ok)} .pip.on svg [stroke="var(--surface)"]{stroke:var(--ok)}
+.st{font-size:13px;font-weight:600}
+.st.ok{color:var(--ok)} .st.wait{color:var(--muted)} .st.part{color:var(--warn)}
+
+.needs{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.add{display:flex;gap:8px}
+.add input{flex:1;min-width:0;font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg)}
+.btn{font:inherit;font-weight:600;padding:10px 16px;border-radius:10px;border:0;background:var(--accent);color:var(--surface);cursor:pointer}
+.nlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.nitem{display:flex;gap:12px;align-items:center;padding:10px 2px;border-top:1px solid var(--line)}
+.nitem .t{flex:1;min-width:0;overflow-wrap:anywhere}
+.nitem.done .t{text-decoration:line-through;color:var(--muted)}
+.nitem small{display:block;color:var(--muted);font-size:12px;text-decoration:none}
+.del{font:inherit;font-size:13px;border:0;background:none;color:var(--muted);cursor:pointer;padding:4px}
+.empty{color:var(--muted);padding:8px 2px}
+.note{font-size:13px;color:var(--muted);background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:12px 14px}
+.status{font-size:13px;color:var(--warn)}
+.acc.fee{font-family:var(--body);font-size:14px;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.bill.done .acc.fee{color:var(--ok)}
+.feecard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:14px}
+.cardtitle{font-size:20px;font-weight:700}
+.feeblock{display:flex;flex-direction:column;gap:8px}
+.acctblock{border-top:1px solid var(--line);padding-top:14px}
+.acctrows{display:flex;flex-direction:column;gap:10px;margin:0}
+.acctrows div{display:flex;flex-direction:column;gap:1px;min-width:0}
+.acctrows dt{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.acctrows dd{margin:0;font-weight:600;overflow-wrap:anywhere}
+.iban{font-family:var(--mono);font-size:15px;letter-spacing:.02em;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.acctbtns{display:flex;gap:8px;flex-wrap:wrap}
+.btn2{font:inherit;font-weight:600;padding:10px 16px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;min-height:44px}
+.btn2.danger{color:var(--warn);border-color:var(--warn)}
+.btn.danger{background:var(--warn)}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:13px;font-weight:600;color:var(--muted)}
+.field input{font:inherit;font-size:16px;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);width:100%;min-width:0}
+.field input.mono{font-family:var(--mono);letter-spacing:.02em}
+.confirm{background:var(--accent-soft);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:10px;font-weight:600}
+.feehead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.feehead label{font-family:var(--display);font-weight:700;font-size:17px}
+#feenow{font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+.feehint{margin:0;font-size:13px;color:var(--muted)}
+.money{flex:1;min-width:0;display:flex;align-items:center;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.money input{flex:1;min-width:0;border:0;background:none;font:inherit;font-size:16px;padding:10px 12px;color:var(--fg);font-variant-numeric:tabular-nums}
+.money input:focus-visible{outline:none}
+.money:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.money span{padding-right:12px;color:var(--muted);font-weight:600}
+.feemsg{font-size:13px;color:var(--ok);font-weight:600}
+.gate{position:fixed;inset:0;z-index:50;background:var(--bg);display:grid;place-items:center;padding:24px}
+.gatein{width:100%;max-width:320px;display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center}
+.gatein img{border-radius:18px}
+.gatein p{margin:0;color:var(--muted)}
+.gatein input{width:100%;font:inherit;font-size:22px;letter-spacing:.3em;text-align:center;padding:12px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg)}
+.gatein .btn{width:100%;min-height:48px}
+.wa{display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:10px 16px;border-radius:12px;
+  background:var(--accent);color:var(--surface);font-weight:700;font-size:16px;text-decoration:none}
+.wa svg{width:22px;height:22px}
+.wa.ghost{background:var(--surface);color:var(--accent);border:1.5px solid var(--accent);min-height:44px;font-size:15px;flex:1 1 100%}
+.share{position:fixed;left:0;right:0;bottom:0;z-index:30;
+  padding:0 max(12px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px))}
+.sharein{max-width:560px;margin:0 auto;background:var(--surface);border:1.5px solid var(--accent);border-radius:18px;padding:14px;
+  display:flex;flex-direction:column;gap:10px;box-shadow:0 10px 40px rgba(60,25,0,.22);animation:up .22s ease-out}
+@keyframes up{from{transform:translateY(16px);opacity:.4}to{transform:none;opacity:1}}
+.sharehead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.sharehead strong{font-family:var(--display);font-size:17px}
+.btn2.small{min-height:36px;padding:6px 12px;font-size:14px}
+.sharetext{margin:0;white-space:pre-wrap;font-family:var(--body);font-size:14px;line-height:1.45;background:var(--accent-soft);
+  border-radius:12px;padding:10px 12px;max-height:38vh;overflow:auto}
+.sharenote{margin:0;font-size:12.5px;color:var(--muted);text-align:center}
+.view{display:flex;flex-direction:column;gap:14px}
+.maintabs{position:sticky;top:env(safe-area-inset-top, 0px);z-index:20;display:grid;grid-template-columns:1fr 1fr;gap:6px;
+  background:var(--bg);padding-block:8px;margin-block:-8px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top, 0px);z-index:21;background:var(--bg)}
+.maintabs button{font:inherit;font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:10px;
+  min-height:56px;padding:8px 12px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;position:relative;text-align:left;line-height:1.2}
+.maintabs svg{width:28px;height:28px;flex:none}
+.maintabs button[aria-current="page"]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.maintabs b{background:var(--accent);color:var(--surface);font-size:12px;min-width:22px;height:22px;border-radius:11px;display:inline-grid;place-items:center;padding:0 6px}
+.maintabs button[aria-current="page"] b{background:var(--surface);color:var(--accent)}
+body[data-view] .view{display:none}
+body[data-view="fatura"] .view[data-v="fatura"],
+body[data-view="ihtiyac"] .view[data-v="ihtiyac"]{display:flex}
+html{-webkit-text-size-adjust:100%}
+body{-webkit-tap-highlight-color:transparent}
+
+/* Phone (iPhone) layout: one section at a time, bottom tab bar */
+@media (max-width:760px){
+  body{font-size:16px}
+  .wrap{gap:16px;padding-block:12px 32px}
+  .maintabs button{font-size:15px;gap:8px;padding:8px}
+  .maintabs svg{width:26px;height:26px}
+  .top{flex-direction:column;align-items:stretch;gap:10px}
+  h1{font-size:28px}
+  .sub{font-size:14px}
+  .turn{padding:14px 16px;gap:10px}
+  .turn>div:first-child{flex:1 1 100%}
+  .box{padding:16px;gap:10px}
+  .box.now{order:-1}
+  .box h3{font-size:24px}
+  .bill{padding:10px;gap:10px}
+  .ico{width:38px;height:38px}
+  .bill .acc{font-size:13px}
+  .copy{font-size:13px;padding:6px 4px;margin:-6px 0}
+  .chk{width:36px;height:36px;border-radius:10px}
+  .chk:checked::after{width:10px;height:17px}
+  .tabs{display:grid;grid-template-columns:1fr 1fr}
+  .tabs button{min-height:52px}
+  .tablewrap{overflow:visible;background:none;border:0}
+  table{min-width:0}
+  thead{display:none}
+  tbody{display:flex;flex-direction:column;gap:8px}
+  tbody tr{display:grid;grid-template-columns:1fr auto;gap:6px 10px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  tbody tr.cur{border-color:var(--accent);background:var(--accent-soft)}
+  tbody tr.cur td{background:none}
+  td{padding:0;border:0;white-space:normal}
+  td:nth-child(1){font-weight:600}
+  td:nth-child(4){text-align:right;grid-row:1;grid-column:2}
+  td:nth-child(2){grid-row:2;grid-column:1}
+  td:nth-child(3){grid-row:2;grid-column:2}
+  .add input{font-size:16px;padding:12px}
+  .btn{padding:12px 18px}
+  .nitem{padding:12px 2px}
+  .del{padding:8px;min-height:40px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Ankara Sayınlar</h1>
+      <p class="sub">Aybüke · Ezgican · Aybala — her ay sırayla biri öder</p>
+    </div>
+  </header>
+
+  <nav class="maintabs" aria-label="Bölümler">
+    <button type="button" data-go="fatura"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 2.5h13A1.5 1.5 0 0 1 20 4v17.3l-2.7-1.7-2.6 1.7-2.7-1.7-2.7 1.7-2.6-1.7L4 21.3V4a1.5 1.5 0 0 1 1.5-1.5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 7.5h8M8 11h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><text x="12" y="18.2" text-anchor="middle" font-size="7.5" font-weight="700" fill="currentColor" font-family="-apple-system, Inter, Arial, sans-serif">₺</text></svg>Fatura ve Aidatlar</button>
+    <button type="button" data-go="ihtiyac"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5h18l-1.8 9a1.8 1.8 0 0 1-1.8 1.5H6.6a1.8 1.8 0 0 1-1.8-1.5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M7.5 10.5 10.5 4M16.5 10.5 13.5 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M9 14v3.5M12 14v3.5M15 14v3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Ev İhtiyaçları<b id="navcount" hidden></b></button>
+  </nav>
+
+  <p class="status" id="status" hidden></p>
+
+  <div class="view" data-v="fatura">
+    <div class="turn" id="turn"></div>
+    <div class="people" id="people"></div>
+    <div class="feecard">
+    <h2 class="cardtitle">Aidat Tutarı ve Hesap</h2>
+    <form class="feeblock" id="feeform">
+      <div class="feehead">
+        <label for="feeinput">Aylık tutar</label>
+        <span id="feenow"></span>
+      </div>
+      <p class="feehint">Aidat değişince yeni tutarı yazıp kaydedin. Daha önce ödenmiş aylar eski tutarla kalır.</p>
+      <div class="add">
+        <div class="money"><input id="feeinput" type="text" inputmode="decimal" enterkeyhint="done" autocomplete="off" placeholder="2280"><span>₺</span></div>
+        <button class="btn" type="submit">Kaydet</button>
+      </div>
+      <span class="feemsg" id="feemsg" hidden></span>
+    </form>
+    <div class="feeblock acctblock" id="acct"></div>
+    </div>
+  </div>
+
+  <section class="view" data-v="fatura">
+    <div class="sechead">
+      <h2>Ödeme takvimi</h2>
+      <span class="legend">Ekim 2026 – Aralık 2028 · simgeler: Aidat, Su, Gaz, Elektrik, İnternet</span>
+    </div>
+    <div class="tabs" role="tablist" aria-label="Takvim sayfaları">
+      <button type="button" role="tab" id="tab-1" data-page="1">1. Sayfa <small>Eki 2026 – Ara 2027</small></button>
+      <button type="button" role="tab" id="tab-2" data-page="2">2. Sayfa <small>2028</small></button>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Ay</th><th>Ödeyen</th><th>Faturalar</th><th>Durum</th></tr></thead>
+        <tbody id="sched"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="view" data-v="ihtiyac">
+    <div class="sechead">
+      <h2>Evin ihtiyaçları</h2>
+      <span class="legend" id="needcount"></span>
+    </div>
+    <div class="needs">
+      <form class="add" id="addform">
+        <input id="needinput" type="text" enterkeyhint="done" autocomplete="off" placeholder="Örn. bulaşık deterjanı, tuvalet kağıdı…" maxlength="80" aria-label="Yeni ihtiyaç">
+        <button class="btn" type="submit">Ekle</button>
+      </form>
+      <ul class="nlist" id="needs"></ul>
+    </div>
+  </section>
+
+  <p class="note view" data-v="fatura">Bildirimler: tikler şimdilik burada kaydediliyor. Bir sonraki adımda bir tik atıldığında diğer kardeşlere e-posta veya mesaj gitmesini bağlayacağız.</p>
+</div>
+
+<div class="gate" id="gate" hidden>
+  <form class="gatein" id="gateform">
+    <img src="icons/icon-192.png" alt="" width="72" height="72">
+    <h2>Ankara Sayınlar</h2>
+    <p id="gatemsg">Devam etmek için ev şifresini girin.</p>
+    <input id="pininput" type="password" inputmode="numeric" autocomplete="current-password" enterkeyhint="go" aria-label="Ev şifresi">
+    <button class="btn" type="submit">Giriş</button>
+  </form>
+</div>
+
+<div class="share" id="share" hidden>
+  <div class="sharein" role="dialog" aria-labelledby="sharetitle">
+    <div class="sharehead">
+      <strong id="sharetitle">WhatsApp'ta haber ver</strong>
+      <button type="button" class="btn2 small" id="shareclose">Kapat</button>
+    </div>
+    <pre class="sharetext" id="sharetext"></pre>
+    <a class="wa" id="sharelink" href="https://wa.me/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 2.5a9.4 9.4 0 0 0-8.1 14.2L2.6 21.4l4.8-1.3A9.4 9.4 0 1 0 12 2.5Zm0 1.8a7.6 7.6 0 1 1-3.9 14.1l-.3-.2-2.8.8.8-2.7-.2-.3A7.6 7.6 0 0 1 12 4.3Zm-3.1 3.9c-.2 0-.5.1-.7.3-.3.3-.9.9-.9 2.2s.9 2.5 1 2.7c.1.2 1.8 2.9 4.5 3.9 2.2.9 2.7.7 3.2.7.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.2-.2-.5-.3l-1.6-.8c-.2-.1-.4-.1-.6.1l-.7.9c-.1.2-.3.2-.5.1-.3-.1-1-.4-1.9-1.2-.7-.6-1.2-1.4-1.3-1.6-.1-.3 0-.4.1-.5l.4-.4.3-.4v-.4l-.7-1.8c-.2-.4-.4-.4-.5-.4h-.5Z"/></svg>WhatsApp'ta gönder</a>
+    <p class="sharenote">WhatsApp açılınca kardeş grubunu seçip Gönder'e basın.</p>
+  </div>
+</div>
+
+<script>
+const PEOPLE=[
+  {n:"Aybüke",c:"var(--c-aybuke)",s:"var(--c-aybuke-soft)"},
+  {n:"Ezgican",c:"var(--c-ezgican)",s:"var(--c-ezgican-soft)"},
+  {n:"Aybala",c:"var(--c-aybala)",s:"var(--c-aybala-soft)"}
+];
+const BILLS=[
+  {k:"aidat",name:"Aidat",fee:true,
+   icon:'<path d="M4 21V5.5A1.5 1.5 0 0 1 5.5 4h7A1.5 1.5 0 0 1 14 5.5V21Z"/><path d="M14 9h4.5A1.5 1.5 0 0 1 20 10.5V21h-6Z" opacity=".65"/><path d="M7 7.5h1.6M10 7.5h1.6M7 11h1.6M10 11h1.6M7 14.5h1.6M10 14.5h1.6" stroke="var(--surface)" stroke-width="1.6" stroke-linecap="round"/><path d="M8 21v-3.2h2V21" fill="var(--surface)"/>'},
+  {k:"aski",name:"ASKİ (Su)",label:"Abone No",no:"642682",
+   icon:'<path d="M12 3.2c-.3 0-.6.2-.8.5C9.4 6.3 6 10.9 6 14.5a6 6 0 0 0 12 0c0-3.6-3.4-8.2-5.2-10.8-.2-.3-.5-.5-.8-.5Z"/><path d="M9.3 14.6a2.8 2.8 0 0 0 2.6 2.7" fill="none" stroke="var(--surface)" stroke-width="1.6" stroke-linecap="round"/>'},
+  {k:"gaz",name:"Başkent Gaz",label:"Sözleşme Hesap No",no:"10004551557",
+   icon:'<path d="M12.6 2.6c.2 2.4 1.5 3.9 3 5.6 1.6 1.8 3.4 3.8 3.4 7a7 7 0 0 1-14 0c0-2.7 1.3-4.6 2.8-6 .3-.3.8-.1.8.3 0 1.2.4 2.2 1.2 2.9C10 9.6 10.5 5.5 12 2.4c.2-.3.6-.2.6.2Z"/><path d="M12 13.2c-1.4 1.3-2.6 2.6-2.6 4.1a2.6 2.6 0 0 0 5.2 0c0-1.5-1.2-2.8-2.6-4.1Z" fill="var(--surface)"/>'},
+  {k:"elektrik",name:"Enerjisa (Elektrik)",label:"No",no:"1019352264",
+   icon:'<path d="M13.6 2.3 5.3 13.1c-.4.5 0 1.2.6 1.2h4.6l-1.4 7.1c-.1.6.6.9 1 .4l8.3-10.8c.4-.5 0-1.2-.6-1.2h-4.6l1.4-7.1c.1-.6-.6-.9-1-.4Z"/>'},
+  {k:"internet",name:"TTNET (İnternet)",label:"Hesap No",no:"7030510210",
+   icon:'<g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M2.8 9.2a13.5 13.5 0 0 1 18.4 0"/><path d="M6 12.6a8.8 8.8 0 0 1 12 0"/><path d="M9.2 15.9a4.2 4.2 0 0 1 5.6 0"/></g><circle cx="12" cy="19.3" r="1.7"/>'}
+];
+const AYLAR=["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+// Oct 2026 = Aybüke, then Ezgican, Aybala, repeating, through Dec 2027
+const MONTHS=[];
+for(let i=0,y=2026,m=9;i<27;i++){MONTHS.push({id:`${y}-${String(m+1).padStart(2,"0")}`,label:`${AYLAR[m]} ${y}`,p:PEOPLE[i%3].n});m++;if(m>11){m=0;y++}}
+
+let months={};   // id -> {aski:bool,..., by:{aski:"name"}}
+let needs=[];    // [{id,text,by,done,doneBy,at}]
+let aidat=2280, acct=null, acctMode="view";
+const tl=n=>new Intl.NumberFormat("tr-TR",{maximumFractionDigits:2}).format(n)+" ₺";
+let db=null, readOnly=false, page=null, view="fatura";
+try{const v=localStorage.getItem("ev-view");if(["fatura","ihtiyac"].includes(v))view=v}catch(e){}
+
+const $=s=>document.querySelector(s);
+const el=(t,a={},...kids)=>{const e=document.createElement(t);for(const[k,v]of Object.entries(a)){if(k==="class")e.className=v;else if(k==="style")e.style.cssText=v;else if(k.startsWith("on"))e.addEventListener(k.slice(2),v);else if(v!==false&&v!=null)e.setAttribute(k,v===true?"":v)}for(const c of kids)if(c!=null)e.append(c);return e};
+
+function paidCount(id){const d=months[id]||{};return BILLS.filter(b=>d[b.k]).length}
+function nowId(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`}
+// The active turn: first month (from the current calendar month on) that isn't fully paid
+function activeIdx(){
+  const start=Math.max(0,MONTHS.findIndex(m=>m.id>=nowId()));
+  for(let i=start;i<MONTHS.length;i++) if(paidCount(MONTHS[i].id)<BILLS.length) return i;
+  return MONTHS.length-1;
+}
+function personIdx(name){
+  const a=activeIdx();
+  for(let i=a;i<MONTHS.length;i++) if(MONTHS[i].p===name) return i;
+  for(let i=MONTHS.length-1;i>=0;i--) if(MONTHS[i].p===name) return i;
+  return 0;
+}
+
+function copy(text,btn){
+  const done=()=>{btn.textContent="kopyalandı";setTimeout(()=>btn.textContent="kopyala",1400)};
+  try{navigator.clipboard.writeText(text).then(done,()=>{btn.textContent=text})}catch(e){btn.textContent=text}
+}
+
+// ---- WhatsApp ready messages ----
+const waUrl=t=>"https://wa.me/?text="+encodeURIComponent(t);
+const loc=n=>{const v=(n.match(/[aeıioöuü]/gi)||["a"]).pop().toLowerCase();return n+"'"+("eiöü".includes(v)?"de":"da")};
+const billName=b=>b.fee?"Aidat":b.name.replace(/\s*\(.*\)/,"");
+function acctText(){return acct?`Hesap adı: ${acct.ad}\nIBAN: ${fmtIban(acct.iban)}${acct.banka?`\nBanka: ${acct.banka}`:""}`:""}
+function monthMsg(id,undoneKey){
+  const i=MONTHS.findIndex(m=>m.id===id), m=MONTHS[i], d=months[id]||{};
+  const paid=BILLS.filter(b=>d[b.k]).map(b=>b.fee?`Aidat (${tl(d.amt&&d.amt.aidat||aidat)})`:billName(b));
+  const left=BILLS.filter(b=>!d[b.k]).map(billName);
+  if(!left.length){
+    const nx=MONTHS[i+1];
+    return `🎉 Ankara Sayınlar · ${m.label}\n${m.p} bu ayın tüm ödemelerini tamamladı. Teşekkürler!${nx?`\nSıradaki ay: ${nx.label} · sıra ${loc(nx.p)}`:""}`;
+  }
+  const lines=[`🏠 Ankara Sayınlar · ${m.label} (${m.p})`];
+  if(undoneKey) lines.push(`↩️ ${billName(BILLS.find(b=>b.k===undoneKey))} tiki kaldırıldı`);
+  if(paid.length) lines.push(`✅ Ödendi: ${paid.join(", ")}`);
+  lines.push(`⏳ Kalan: ${left.join(", ")}`);
+  return lines.join("\n");
+}
+function reminderMsg(){
+  const m=MONTHS[activeIdx()], d=months[m.id]||{};
+  const left=BILLS.filter(b=>!d[b.k]).map(billName);
+  const lines=[`⏰ Hatırlatma · ${m.label}`,`Bu ay ödemeler ${loc(m.p)}.`];
+  if(left.length) lines.push(`Kalan: ${left.join(", ")}`);
+  if(!d.aidat){lines.push("",`Aidat: ${tl(aidat)}`); if(acct) lines.push(acctText())}
+  return lines.join("\n");
+}
+function needsLeft(){
+  const open=needs.filter(n=>!n.done).map(n=>n.text);
+  return open.length?`\nListede kalanlar: ${open.join(", ")}`:"\nAlınacak başka bir şey kalmadı.";
+}
+function waBtn(text,label){
+  const a=el("a",{class:"wa ghost",href:waUrl(text),target:"_blank",rel:"noopener"});
+  a.innerHTML=`<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 2.5a9.4 9.4 0 0 0-8.1 14.2L2.6 21.4l4.8-1.3A9.4 9.4 0 1 0 12 2.5Zm0 1.8a7.6 7.6 0 1 1-3.9 14.1l-.3-.2-2.8.8.8-2.7-.2-.3A7.6 7.6 0 0 1 12 4.3Zm-3.1 3.9c-.2 0-.5.1-.7.3-.3.3-.9.9-.9 2.2s.9 2.5 1 2.7c.1.2 1.8 2.9 4.5 3.9 2.2.9 2.7.7 3.2.7.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.2-.2-.5-.3l-1.6-.8c-.2-.1-.4-.1-.6.1l-.7.9c-.1.2-.3.2-.5.1-.3-.1-1-.4-1.9-1.2-.7-.6-1.2-1.4-1.3-1.6-.1-.3 0-.4.1-.5l.4-.4.3-.4v-.4l-.7-1.8c-.2-.4-.4-.4-.5-.4h-.5Z"/></svg>`; a.append(label); return a;
+}
+function offerShare(text){
+  $("#sharetext").textContent=text;
+  $("#sharelink").href=waUrl(text);
+  $("#share").hidden=false;
+}
+
+function render(){
+  document.body.dataset.view=view;
+  document.querySelectorAll("[data-go]").forEach(b=>{if(b.dataset.go===view)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});
+  const a=activeIdx(), am=MONTHS[a], pc=paidCount(am.id);
+  const per=PEOPLE.find(p=>p.n===am.p);
+  $("#turn").replaceChildren(
+    el("div",{},el("div",{class:"meta"},`${am.label} · sıra`),el("div",{class:"who",style:`color:${per.c}`},`${am.p}'da`)),
+    el("div",{class:"bar","aria-label":`${pc} / ${BILLS.length} ödendi`},el("i",{style:`width:${pc/BILLS.length*100}%`})),
+    el("div",{class:"meta"},`${pc} / ${BILLS.length} ödeme yapıldı`),
+    waBtn(reminderMsg(),"Hatırlatma gönder")
+  );
+
+  const people=$("#people"); people.replaceChildren();
+  for(const p of PEOPLE){
+    const i=personIdx(p.n), m=MONTHS[i], d=months[m.id]||{}, isNow=i===a;
+    const prev=MONTHS.slice(0,i).filter(x=>x.p===p.n&&paidCount(x.id)===BILLS.length).pop();
+    const list=el("ul",{class:"bills"});
+    for(const b of BILLS){
+      const on=!!d[b.k];
+      const cb=el("input",{type:"checkbox",class:"chk",id:`chk-${p.n}-${b.k}`,"aria-label":`${b.name} ödendi`,disabled:readOnly||!isNow});
+      cb.checked=on;
+      cb.addEventListener("change",()=>toggle(m.id,b.k,cb.checked));
+      let accLine;
+      if(b.fee){
+        const amt=on&&d.amt&&d.amt[b.k]?d.amt[b.k]:aidat;
+        accLine=el("div",{class:"acc fee"},on?`${tl(amt)} ödendi`:`Aylık tutar: ${tl(amt)}`);
+      }else{
+        const cbtn=el("button",{type:"button",class:"copy"},"kopyala"); cbtn.addEventListener("click",()=>copy(b.no,cbtn));
+        accLine=el("div",{class:"acc"},`${b.label}:`,el("span",{class:"no"},b.no),cbtn);
+      }
+      const ic=el("span",{class:"ico","aria-hidden":"true"});
+      ic.innerHTML=`<svg viewBox="0 0 24 24" fill="currentColor">${b.icon}</svg>`;
+      list.append(el("li",{class:"bill"+(b.fee?" key":"")+(on?" done":"")},
+        ic,
+        el("div",{class:"info"},
+          el("div",{class:"name"},b.name),
+          accLine,
+          ),
+        cb));
+    }
+    const lock=isNow?null:el("div",{class:"lockmsg"});
+    if(lock) lock.innerHTML=`<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 10V7.5a5 5 0 0 1 10 0V10h.5A1.5 1.5 0 0 1 19 11.5v8a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 19.5v-8A1.5 1.5 0 0 1 6.5 10Zm2 0h6V7.5a3 3 0 0 0-6 0Z"/></svg>Sırası gelince işaretlenebilir`;
+    people.append(el("article",{class:"box"+(isNow?" now":" locked"),style:`--c:${p.c};--soft:${p.s}`},
+      el("h3",{},p.n),
+      el("div",{class:"when"},el("span",{class:"month"},m.label),el("span",{class:"tag"},isNow?"Şimdi sırada":(i>a?"Sıradaki ayı":"Son ayı"))),
+      list,
+      lock,
+      el("div",{class:"foot"},prev?`Son tamamlanan: ${prev.label}`:"Henüz tamamlanan ay yok")
+    ));
+  }
+
+  $("#feenow").textContent=`Şu an: ${tl(aidat)}`;
+  if(acctMode!=="edit") renderAcct();
+  $("#feeinput").disabled=readOnly;
+  const tb=$("#sched"); tb.replaceChildren();
+  if(page===null) page=MONTHS[a].id<"2028"?1:2;
+  document.querySelectorAll("[data-page]").forEach(b=>b.setAttribute("aria-selected",String(+b.dataset.page===page)));
+  MONTHS.forEach((m,i)=>{
+    if((page===1)!==(m.id<"2028")) return;
+    const c=paidCount(m.id), per=PEOPLE.find(p=>p.n===m.p), d=months[m.id]||{};
+    const st=c===BILLS.length?["ok","Ödendi ✓"]:c>0?["part",`${c}/${BILLS.length} ödendi`]:["wait",i<a?"Ödenmedi":"Bekliyor"];
+    tb.append(el("tr",{class:i===a?"cur":""},
+      el("td",{},m.label),
+      el("td",{},el("span",{class:"dot",style:`background:${per.c}`}),el("span",{class:"pname"},m.p)),
+      el("td",{},el("div",{class:"pips"},...BILLS.map(b=>{const x=el("span",{class:"pip"+(d[b.k]?" on":""),title:b.name});x.innerHTML=`<svg viewBox="0 0 24 24" fill="currentColor">${b.icon}</svg>`;return x}))),
+      el("td",{},el("span",{class:`st ${st[0]}`},st[1]))
+    ));
+  });
+
+  const ul=$("#needs"); ul.replaceChildren();
+  const open=needs.filter(n=>!n.done).length;
+  $("#needcount").textContent=needs.length?`${open} alınacak`:"";
+  const nc=$("#navcount"); nc.textContent=open; nc.hidden=!open;
+  const sorted=[...needs].sort((x,y)=>(x.done-y.done)||((y.at||0)-(x.at||0)));
+  if(!sorted.length) ul.append(el("li",{class:"empty"},"Liste boş. Evde biten bir şey olunca yukarıya yazıp ekleyin."));
+  for(const n of sorted){
+    const cb=el("input",{type:"checkbox",class:"chk",id:`need-${n.id}`,"aria-label":`${n.text} alındı`,disabled:readOnly}); cb.checked=!!n.done;
+    cb.addEventListener("change",()=>{saveNeed(n.id,{...n,done:cb.checked});
+      if(cb.checked) offerShare(`✔️ Ankara Sayınlar · Alındı: ${n.text}${needsLeft()}`);});
+    ul.append(el("li",{class:"nitem"+(n.done?" done":"")},cb,
+      el("div",{class:"t"},n.text),
+      readOnly?null:el("button",{type:"button",class:"del","aria-label":`${n.text} sil`,onclick:()=>delNeed(n.id)},"Sil")));
+  }
+}
+
+function setStatus(t){const s=$("#status");s.textContent=t||"";s.hidden=!t}
+function saveLocal(){try{localStorage.setItem("ev-local",JSON.stringify({months,needs,aidat,acct}))}catch(e){}}
+
+async function toggle(id,k,val){
+  const d=JSON.parse(JSON.stringify(months[id]||{}));
+  d[k]=val; delete d.by;
+  if(k==="aidat"){d.amt=d.amt||{}; if(val) d.amt.aidat=aidat; else delete d.amt.aidat}
+  months[id]=d; render();
+  offerShare(monthMsg(id, val?null:k));
+  put("months/"+id,d);
+}
+async function saveNeed(id,obj){
+  const {id:_,...body}=obj; needs=needs.map(n=>n.id===id?{...obj}:n); render();
+  put("needs/"+id,body);
+}
+async function delNeed(id){
+  needs=needs.filter(n=>n.id!==id); render();
+  del("needs/"+id);
+}
+
+const fmtIban=v=>(v||"").replace(/\s+/g,"").toUpperCase().replace(/(.{4})/g,"$1 ").trim();
+function renderAcct(){
+  const box=$("#acct"); box.replaceChildren();
+  const head=el("div",{class:"feehead"},el("span",{class:"cardtitle",style:"font-size:17px"},"Aidat yatırılan hesap"));
+  box.append(head);
+  if(acctMode==="edit"){
+    const f=el("form",{class:"feeblock"});
+    const mk=(id,label,val,extra={})=>{const i=el("input",{id,type:"text",autocomplete:"off",...extra});i.value=val||"";return [el("div",{class:"field"},el("label",{for:id},label),i),i]};
+    const [f1,i1]=mk("acc-ad","Hesap adı",acct&&acct.ad);
+    const [f2,i2]=mk("acc-iban","IBAN",acct&&fmtIban(acct.iban),{class:"mono",autocapitalize:"characters",spellcheck:"false",placeholder:"TR.."});
+    const [f3,i3]=mk("acc-banka","Banka ve şube",acct&&acct.banka);
+    const err=el("span",{class:"status",hidden:true});
+    const btns=el("div",{class:"acctbtns"},el("button",{class:"btn",type:"submit"},"Kaydet"));
+    if(acct) btns.append(el("button",{class:"btn2",type:"button",onclick:()=>{acctMode="view";renderAcct()}},"Vazgeç"));
+    f.append(f1,f2,f3,err,btns);
+    f.addEventListener("submit",async e=>{
+      e.preventDefault();
+      const v={ad:i1.value.trim(),iban:i2.value.replace(/\s+/g,"").toUpperCase(),banka:i3.value.trim()};
+      if(!v.ad||!v.iban){err.textContent="Hesap adı ve IBAN boş bırakılamaz.";err.hidden=false;return}
+      acct=v; acctMode="view"; renderAcct();
+      offerShare(`🏦 Ankara Sayınlar · Aidat hesabı güncellendi\n${acctText()}`);
+      put("settings/hesap",v);
+    });
+    box.append(f);
+    return;
+  }
+  if(!acct){
+    box.append(el("p",{class:"feehint"},"Henüz hesap bilgisi yok."));
+    if(!readOnly) box.append(el("div",{class:"acctbtns"},el("button",{class:"btn",type:"button",onclick:()=>{acctMode="edit";renderAcct()}},"Hesap ekle")));
+    return;
+  }
+  const cbtn=el("button",{type:"button",class:"copy"},"kopyala"); cbtn.addEventListener("click",()=>copy(acct.iban,cbtn));
+  box.append(el("dl",{class:"acctrows"},
+    el("div",{},el("dt",{},"Hesap adı"),el("dd",{},acct.ad)),
+    el("div",{},el("dt",{},"IBAN"),el("dd",{class:"iban"},fmtIban(acct.iban),cbtn)),
+    acct.banka?el("div",{},el("dt",{},"Banka"),el("dd",{},acct.banka)):null));
+  if(readOnly) return;
+  if(acctMode==="confirm"){
+    box.append(el("div",{class:"confirm"},"Hesap bilgisi silinsin mi?",
+      el("div",{class:"acctbtns"},
+        el("button",{class:"btn danger",type:"button",onclick:async()=>{acct=null;acctMode="view";renderAcct();
+          offerShare("🏦 Ankara Sayınlar · Aidat hesap bilgisi uygulamadan silindi. Yeni hesap girilene kadar ödemeden önce IBAN'ı teyit edelim.");
+          del("settings/hesap")}},"Evet, sil"),
+        el("button",{class:"btn2",type:"button",onclick:()=>{acctMode="view";renderAcct()}},"Vazgeç"))));
+  }else{
+    box.append(el("div",{class:"acctbtns"},
+      el("button",{class:"btn2",type:"button",onclick:()=>{acctMode="edit";renderAcct()}},"Düzenle"),
+      el("button",{class:"btn2 danger",type:"button",onclick:()=>{acctMode="confirm";renderAcct()}},"Sil")));
+  }
+}
+$("#feeform").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const inp=$("#feeinput"), raw=inp.value.trim().replace(/\./g,"").replace(",",".").replace(/[^\d.]/g,"");
+  const v=parseFloat(raw), msg=$("#feemsg");
+  if(!raw||!(v>0)){msg.textContent="Lütfen sadece rakam girin, örneğin 2450.";msg.hidden=false;return}
+  const old=aidat; aidat=Math.round(v*100)/100; inp.value=""; inp.blur();
+  if(old!==aidat) offerShare(`📢 Ankara Sayınlar · Aidat tutarı değişti\nYeni tutar: ${tl(aidat)}\nÖnceki tutar: ${tl(old)}`);
+  msg.textContent=`Yeni aidat tutarı kaydedildi: ${tl(aidat)}`; msg.hidden=false; setTimeout(()=>msg.hidden=true,3000);
+  render();
+  put("settings/aidat",{amount:aidat});
+});
+$("#shareclose").addEventListener("click",()=>{$("#share").hidden=true});
+$("#sharelink").addEventListener("click",()=>{setTimeout(()=>{$("#share").hidden=true},400)});
+document.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>{view=b.dataset.go;try{localStorage.setItem("ev-view",view)}catch(e){}render();window.scrollTo(0,0)}));
+document.querySelectorAll("[data-page]").forEach(b=>b.addEventListener("click",()=>{page=+b.dataset.page;render()}));
+$("#addform").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const inp=$("#needinput"), text=inp.value.trim(); if(!text||readOnly) return;
+  inp.value="";
+  const body={text,done:false,at:Date.now()};
+  const id="n"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  needs=[...needs,{id,...body}]; render();
+  offerShare(`🛒 Ankara Sayınlar · Eve alınacak: ${text}${needsLeft()}`);
+  put("needs/"+id,body);
+});
+
+// ---- Google E-Tablo bağlantısı (Apps Script web uygulaması) ----
+// Kurulumdan sonra aldığınız Web app URL'sini tırnakların içine yapıştırın:
+const API_URL="https://script.google.com/macros/s/AKfycbw_QxW8o5IJdHuN6tsbLiFCgQKo7LJUYVOqkq2STLIIrRZowJWq_FSUwDXBYkgA-axN8g/exec";
+
+let pin=""; try{pin=localStorage.getItem("ev-pin")||""}catch(e){}
+let pending=0, queue=Promise.resolve();
+function applyData(data){
+  const m={}, n=[]; let am=null, ac=null;
+  for(const [k,v] of Object.entries(data||{})){
+    const [col,id]=k.split("/");
+    if(col==="months") m[id]=v;
+    else if(col==="needs") n.push({id,...v});
+    else if(k==="settings/aidat") am=Number(v&&v.amount);
+    else if(k==="settings/hesap") ac=v;
+  }
+  months=m; needs=n; if(am>0) aidat=am; acct=ac;
+  saveLocal(); render();
+}
+function showGate(msg){ $("#gatemsg").textContent=msg; $("#gate").hidden=false; setTimeout(()=>$("#pininput").focus(),50) }
+async function call(body){
+  let r;
+  if(body){
+    r=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({...body,pin})});
+  }else{
+    r=await fetch(API_URL+"?pin="+encodeURIComponent(pin)+"&t="+Date.now());
+  }
+  const j=await r.json();
+  if(!j.ok){ if(j.error==="pin"){ showGate("Ev şifresi hatalı, tekrar deneyin."); } throw new Error(j.error||"hata") }
+  return j.data;
+}
+function write(body){
+  pending++;
+  queue=queue.then(()=>call(body)).then(data=>{ if(--pending===0) applyData(data); setStatus("") })
+    .catch(()=>{ pending--; setStatus("Kaydedilemedi. İnternet bağlantınızı kontrol edip tekrar deneyin.") });
+  saveLocal();
+}
+const put=(key,value)=>write({action:"set",key,value});
+const del=key=>write({action:"delete",key});
+async function refresh(){
+  if(!pin||pending||acctMode==="edit") return;
+  try{ applyData(await call()); setStatus("") }catch(e){ if(e.message!=="pin") setStatus("Bağlantı kurulamadı, son kaydedilen bilgiler gösteriliyor.") }
+}
+
+$("#gateform").addEventListener("submit",async e=>{
+  e.preventDefault();
+  pin=$("#pininput").value.trim(); if(!pin) return;
+  try{ applyData(await call()); try{localStorage.setItem("ev-pin",pin)}catch(x){} $("#gate").hidden=true; $("#pininput").value="" }
+  catch(err){ if(err.message!=="pin") showGate("Bağlantı kurulamadı. İnternet bağlantınızı kontrol edin.") }
+});
+
+// İlk açılış: son bilinen veriyle hemen göster, sonra E-Tablodan güncelle
+try{const s=JSON.parse(localStorage.getItem("ev-local")||"null");if(s){months=s.months||{};needs=s.needs||[];if(s.aidat>0)aidat=s.aidat;if(s.acct!==undefined)acct=s.acct}}catch(e){}
+render();
+if(API_URL.startsWith("BURAYA")){
+  setStatus("Kurulum tamamlanmadı: index.html içindeki API_URL satırına Apps Script Web app adresini yapıştırın.");
+}else if(!pin){ showGate("Devam etmek için ev şifresini girin.") }
+else { refresh() }
+setInterval(()=>{ if(document.visibilityState==="visible") refresh() },20000);
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") refresh() });
+</script>
+</body>
+</html>
