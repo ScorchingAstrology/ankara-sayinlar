@@ -253,6 +253,22 @@ tr.cur td{background:var(--accent-soft)}
 .miniin .wa{min-height:42px;padding:8px 14px;font-size:15px}
 .miniclose{font:inherit;font-size:22px;line-height:1;width:40px;height:40px;border:0;border-radius:10px;background:none;color:var(--bg);cursor:pointer}
 body.hasmini .wrap{padding-bottom:calc(96px + env(safe-area-inset-bottom, 0px))}
+.rc{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px}
+.rcadd,.rcview{font:inherit;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:4px;padding:5px 10px;min-height:32px;
+  border-radius:8px;border:1.5px dashed var(--accent);background:var(--surface);color:var(--accent);cursor:pointer;text-decoration:none;line-height:1.2}
+.rcview{border-style:solid;background:var(--accent-soft)}
+.rclink{font:inherit;font-size:12.5px;border:0;background:none;color:var(--muted);text-decoration:underline;cursor:pointer;padding:4px 2px}
+.rclink.strong{color:var(--warn);font-weight:700}
+.rcbusy{color:var(--muted);font-size:13px}
+.rclinks{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.rclinks .rcview{font-size:12px;padding:3px 8px;min-height:28px;font-weight:600}
+#sharerc{width:100%}
+.viewer{position:fixed;inset:0;z-index:60;background:rgba(20,10,4,.82);display:grid;place-items:center;
+  padding:calc(16px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px))}
+.viewerin{display:flex;flex-direction:column;gap:10px;width:min(720px,100%);max-height:100%}
+.viewerin img{width:100%;max-height:75vh;object-fit:contain;border-radius:12px;background:var(--surface)}
+.viewerbar{display:flex;gap:8px}
+.viewerbar>*{flex:1;text-align:center;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
 .sharenote{margin:0;font-size:12.5px;color:var(--muted);text-align:center}
 .view{display:flex;flex-direction:column;gap:14px}
 .maintabs{position:sticky;top:env(safe-area-inset-top, 0px);z-index:20;display:grid;grid-template-columns:1fr 1fr;gap:6px;
@@ -421,6 +437,16 @@ body{-webkit-tap-highlight-color:transparent}
   </div>
 </div>
 
+<div class="viewer" id="viewer" hidden>
+  <div class="viewerin">
+    <img id="viewerimg" alt="Dekont">
+    <div class="viewerbar">
+      <a class="btn2" id="viewerlink" href="#" target="_blank" rel="noopener">Tam boyut aç</a>
+      <button type="button" class="btn" id="viewerclose">Kapat</button>
+    </div>
+  </div>
+</div>
+
 <div class="share" id="share" hidden>
   <div class="sharein" role="dialog" aria-labelledby="sharetitle">
     <div class="sharehead">
@@ -430,6 +456,7 @@ body{-webkit-tap-highlight-color:transparent}
     <pre class="sharetext" id="sharetext"></pre>
     <a class="wa" id="sharelink" href="https://wa.me/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 2.5a9.4 9.4 0 0 0-8.1 14.2L2.6 21.4l4.8-1.3A9.4 9.4 0 1 0 12 2.5Zm0 1.8a7.6 7.6 0 1 1-3.9 14.1l-.3-.2-2.8.8.8-2.7-.2-.3A7.6 7.6 0 0 1 12 4.3Zm-3.1 3.9c-.2 0-.5.1-.7.3-.3.3-.9.9-.9 2.2s.9 2.5 1 2.7c.1.2 1.8 2.9 4.5 3.9 2.2.9 2.7.7 3.2.7.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.2-.2-.5-.3l-1.6-.8c-.2-.1-.4-.1-.6.1l-.7.9c-.1.2-.3.2-.5.1-.3-.1-1-.4-1.9-1.2-.7-.6-1.2-1.4-1.3-1.6-.1-.3 0-.4.1-.5l.4-.4.3-.4v-.4l-.7-1.8c-.2-.4-.4-.4-.5-.4h-.5Z"/></svg>WhatsApp'ta gönder</a>
     <p class="sharenote">WhatsApp açılınca kardeş grubunu seçip Gönder'e basın.</p>
+    <button type="button" class="btn2" id="sharerc" hidden>📎 Bu ödemeye dekont ekle</button>
   </div>
 </div>
 
@@ -544,7 +571,7 @@ function waBtn(text,label){
 function offerShare(text){
   $("#sharetext").textContent=text;
   $("#sharelink").href=waUrl(text);
-  $("#share").hidden=false; hideMini();
+  $("#share").hidden=false; hideMini(); $("#sharerc").hidden=true;
 }
 
 function render(){
@@ -584,7 +611,7 @@ function render(){
         el("div",{class:"info"},
           el("div",{class:"name"},b.name),
           accLine,
-          ),
+          on?rcLine(m.id,b.k):null),
         cb));
     }
     const lock=isNow?null:el("div",{class:"lockmsg"});
@@ -609,7 +636,7 @@ function render(){
     const c=paidCount(m.id), per=PEOPLE.find(p=>p.n===m.p), d=months[m.id]||{};
     const st=c===BILLS.length?["ok","Ödendi ✓"]:c>0?["part",`${c}/${BILLS.length} ödendi`]:["wait",i<a?"Ödenmedi":"Bekliyor"];
     tb.append(el("tr",{class:i===a?"cur":""},
-      el("td",{},m.label),
+      el("td",{},m.label,rcLinks(m.id)),
       el("td",{},el("span",{class:"dot",style:`background:${per.c}`}),el("span",{class:"pname"},m.p)),
       el("td",{},el("div",{class:"pips"},...BILLS.map(b=>{const x=el("span",{class:"pip"+(d[b.k]?" on":""),title:b.name});x.innerHTML=`<svg viewBox="0 0 24 24" fill="currentColor">${b.icon}</svg>`;return x}))),
       el("td",{},el("span",{class:`st ${st[0]}`},st[1]))
@@ -642,6 +669,95 @@ function render(){
   }
 }
 
+const canUpload=()=>!!pin&&!API_URL.startsWith("BURAYA");
+const MAX_RC=15*1024*1024;
+async function storeReceipt(blob,type,name){
+  const data=await new Promise((res,rej)=>{const fr=new FileReader();fr.onload=()=>res(String(fr.result).split(",")[1]);fr.onerror=rej;fr.readAsDataURL(blob)});
+  const r=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action:"upload",pin,name,type,data})});
+  const j=await r.json();
+  if(!j.ok||!j.file) throw {msg:j.error==="pin"?"Parola hatalı.":"Dekont yüklenemedi. Apps Script güncellemesi yapıldı mı?"};
+  return j.file;
+}
+function dropReceipt(r){ if(r&&r.id) fetch(API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action:"file-delete",pin,id:r.id})}).catch(()=>{}) }
+const rcUrl=r=>r.type==="application/pdf"?r.url:(r.thumb||r.url);
+function persistMonth(id,d){ put("months/"+id,d); }
+
+// ---- Dekont (makbuz) ----
+let rcBusy=null, rcConfirm=null;
+function rcOpenEl(r,label,cls){
+  if(r.type==="application/pdf") return el("a",{class:cls,href:rcUrl(r),target:"_blank",rel:"noopener"},"📄 "+label);
+  return el("button",{type:"button",class:cls,onclick:()=>openViewer(r)},"🧾 "+label);
+}
+function openViewer(r){
+  $("#viewerimg").src=rcUrl(r); $("#viewerlink").href=r.url||rcUrl(r); $("#viewer").hidden=false;
+}
+function rcLine(mid,k){
+  const r=((months[mid]||{}).rc||{})[k], key=mid+"/"+k, can=canUpload()&&!readOnly;
+  if(rcBusy===key) return el("div",{class:"rc"},el("span",{class:"rcbusy"},"Dekont yükleniyor…"));
+  if(rcConfirm===key) return el("div",{class:"rc"},el("span",{class:"rcbusy"},"Dekont kaldırılsın mı?"),
+    el("button",{type:"button",class:"rclink strong",onclick:()=>removeReceipt(mid,k)},"Evet"),
+    el("button",{type:"button",class:"rclink",onclick:()=>{rcConfirm=null;render()}},"Hayır"));
+  const row=el("div",{class:"rc"});
+  if(r){
+    row.append(rcOpenEl(r,"Dekontu gör","rcview"));
+    if(can) row.append(el("button",{type:"button",class:"rclink",onclick:()=>pickReceipt(mid,k)},"değiştir"),
+      el("button",{type:"button",class:"rclink",onclick:()=>{rcConfirm=key;render()}},"kaldır"));
+  }else if(can){
+    row.append(el("button",{type:"button",class:"rcadd",onclick:()=>pickReceipt(mid,k)},"📎 Dekont ekle"));
+  }else return null;
+  return row;
+}
+function rcLinks(mid){
+  const rc=(months[mid]||{}).rc||{}, d=months[mid]||{};
+  const items=BILLS.filter(b=>rc[b.k]&&d[b.k]);
+  if(!items.length) return null;
+  return el("div",{class:"rclinks"},...items.map(b=>rcOpenEl(rc[b.k],billName(b),"rcview")));
+}
+function shrinkImage(file){
+  return new Promise(res=>{
+    const url=URL.createObjectURL(file), img=new Image();
+    img.onload=()=>{
+      const s=Math.min(1,1800/Math.max(img.naturalWidth,img.naturalHeight));
+      const c=document.createElement("canvas"); c.width=Math.round(img.naturalWidth*s); c.height=Math.round(img.naturalHeight*s);
+      c.getContext("2d").drawImage(img,0,0,c.width,c.height); URL.revokeObjectURL(url);
+      c.toBlob(b=>res(b||file),"image/jpeg",0.82);
+    };
+    img.onerror=()=>{URL.revokeObjectURL(url);res(file)};
+    img.src=url;
+  });
+}
+function pickReceipt(mid,k){
+  const inp=document.createElement("input"); inp.type="file"; inp.accept="image/*,application/pdf"; inp.hidden=true;
+  document.body.append(inp);
+  inp.addEventListener("change",async()=>{
+    const f=inp.files&&inp.files[0]; inp.remove(); if(!f) return;
+    rcBusy=mid+"/"+k; rcConfirm=null; render();
+    try{
+      let blob=f, type=f.type||"";
+      if(type==="application/pdf"){}
+      else if(type.startsWith("image/")){ blob=await shrinkImage(f); type=blob.type||type; }
+      else throw {msg:"Sadece fotoğraf veya PDF dekont yükleyebilirsiniz."};
+      if(blob.size>MAX_RC) throw {msg:"Dosya çok büyük. Daha küçük bir dosya seçin."};
+      const ref=await storeReceipt(blob,type,`${mid}-${k}.${type==="application/pdf"?"pdf":"jpg"}`);
+      const d=JSON.parse(JSON.stringify(months[mid]||{}));
+      const old=(d.rc||{})[k];
+      d.rc=d.rc||{}; d.rc[k]={...ref,type,at:Date.now()};
+      months[mid]=d; rcBusy=null; setStatus(""); render(); persistMonth(mid,d);
+      if(old) dropReceipt(old);
+    }catch(e){
+      rcBusy=null; render();
+      const m={too_large:"Dosya çok büyük. Daha küçük bir dosya seçin.",unsupported_type:"Bu dosya türü yüklenemiyor. Fotoğraf (JPG, PNG) veya PDF seçin.",quota_or_state:"Dekont alanı dolu. Eski dekontlardan bazılarını kaldırın."};
+      setStatus((e&&e.msg)||(e&&m[e.code])||"Dekont yüklenemedi. Tekrar deneyin.");
+    }
+  });
+  inp.click();
+}
+function removeReceipt(mid,k){
+  const d=JSON.parse(JSON.stringify(months[mid]||{}));
+  const old=(d.rc||{})[k]; if(!old){rcConfirm=null;render();return}
+  delete d.rc[k]; months[mid]=d; rcConfirm=null; render(); persistMonth(mid,d); dropReceipt(old);
+}
+
 function setStatus(t){const s=$("#status");s.textContent=t||"";s.hidden=!t}
 function saveLocal(){try{localStorage.setItem("ev-local",JSON.stringify({months,needs,aidat,acct,shortcuts}))}catch(e){}}
 
@@ -651,6 +767,7 @@ async function toggle(id,k,val){
   if(k==="aidat"){d.amt=d.amt||{}; if(val) d.amt.aidat=aidat; else delete d.amt.aidat}
   months[id]=d; render();
   offerShare(monthMsg(id, val?null:k));
+  if(val&&canUpload()&&!readOnly){const b=$("#sharerc");b.hidden=false;b.onclick=()=>{$("#share").hidden=true;pickReceipt(id,k)}}
   put("months/"+id,d);
 }
 async function saveNeed(id,obj){
@@ -821,6 +938,8 @@ $("#feeform").addEventListener("submit",async e=>{
 });
 $("#shareclose").addEventListener("click",()=>{$("#share").hidden=true});
 $("#miniclose").addEventListener("click",hideMini);
+$("#viewerclose").addEventListener("click",()=>{$("#viewer").hidden=true;$("#viewerimg").removeAttribute("src")});
+$("#viewer").addEventListener("click",e=>{if(e.target.id==="viewer"){$("#viewer").hidden=true;$("#viewerimg").removeAttribute("src")}});
 let drawerOpen=false; try{drawerOpen=localStorage.getItem("ev-drawer")==="1"}catch(e){}
 function setDrawer(o){drawerOpen=o;$("#needgrid").classList.toggle("open",o);$("#drawerbtn").setAttribute("aria-expanded",String(o));
   $("#drawerbtn").setAttribute("aria-label",o?"Kısayolları kapat":"Kısayolları aç");try{localStorage.setItem("ev-drawer",o?"1":"0")}catch(e){}}
