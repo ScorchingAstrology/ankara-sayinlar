@@ -265,8 +265,13 @@ body.hasmini .wrap{padding-bottom:calc(96px + env(safe-area-inset-bottom, 0px))}
 #sharerc{width:100%}
 .viewer{position:fixed;inset:0;z-index:60;background:rgba(20,10,4,.82);display:grid;place-items:center;
   padding:calc(16px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px))}
-.viewerin{display:flex;flex-direction:column;gap:10px;width:min(720px,100%);max-height:100%}
-.viewerin img{width:100%;max-height:75vh;object-fit:contain;border-radius:12px;background:var(--surface)}
+.viewerin{display:flex;flex-direction:column;gap:10px;width:min(720px,100%);max-height:100%;background:var(--surface);border-radius:16px;padding:12px}
+.viewerhead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.viewerhead strong{font-family:var(--display);font-size:16px;min-width:0}
+.pdfcard{display:flex;flex-direction:column;align-items:center;gap:8px;padding:28px 12px;border-radius:12px;background:var(--accent-soft);font-weight:600}
+.pdfico{display:grid;place-items:center;width:64px;height:78px;border-radius:8px;background:var(--accent);color:var(--surface);font-weight:800;letter-spacing:.04em}
+.viewerhint{margin:0;font-size:12.5px;color:var(--muted);text-align:center}
+.viewerin img{width:100%;max-height:68vh;object-fit:contain;border-radius:10px;background:var(--bg)}
 .viewerbar{display:flex;gap:8px}
 .viewerbar>*{flex:1;text-align:center;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
 .sharenote{margin:0;font-size:12.5px;color:var(--muted);text-align:center}
@@ -438,12 +443,18 @@ body{-webkit-tap-highlight-color:transparent}
 </div>
 
 <div class="viewer" id="viewer" hidden>
-  <div class="viewerin">
-    <img id="viewerimg" alt="Dekont">
-    <div class="viewerbar">
-      <a class="btn2" id="viewerlink" href="#" target="_blank" rel="noopener">Tam boyut aç</a>
-      <button type="button" class="btn" id="viewerclose">Kapat</button>
+  <div class="viewerin" role="dialog" aria-labelledby="viewertitle">
+    <div class="viewerhead">
+      <strong id="viewertitle">Dekont</strong>
+      <button type="button" class="btn2 small" id="viewerclose">Kapat</button>
     </div>
+    <img id="viewerimg" alt="Dekont" hidden>
+    <div class="pdfcard" id="viewerpdf" hidden><span class="pdfico">PDF</span><span>PDF dekont</span></div>
+    <div class="viewerbar">
+      <a class="btn2" id="viewerlink" href="#" target="_blank" rel="noopener" hidden>Tam boyut aç</a>
+      <button type="button" class="btn" id="viewerdl">İndir</button>
+    </div>
+    <p class="viewerhint" id="viewerhint" hidden></p>
   </div>
 </div>
 
@@ -682,15 +693,38 @@ function dropReceipt(r){ if(r&&r.id) fetch(API_URL,{method:"POST",headers:{"Cont
 const rcUrl=r=>r.type==="application/pdf"?r.url:(r.thumb||r.url);
 function persistMonth(id,d){ put("months/"+id,d); }
 
+const viewerOpenUrl=r=>r.url||null;
+const viewerHint=r=>r.type==="application/pdf"?"":"İpucu: Fotoğrafa basılı tutarak telefonunuza kaydedebilirsiniz.";
+function downloadReceipt(mid,k,r){
+  const a=document.createElement("a");
+  a.href="https://drive.google.com/uc?export=download&id="+encodeURIComponent(r.id);
+  a.target="_blank"; a.rel="noopener"; document.body.append(a); a.click(); a.remove();
+}
+
 // ---- Dekont (makbuz) ----
 let rcBusy=null, rcConfirm=null;
-function rcOpenEl(r,label,cls){
-  if(r.type==="application/pdf") return el("a",{class:cls,href:rcUrl(r),target:"_blank",rel:"noopener"},"📄 "+label);
-  return el("button",{type:"button",class:cls,onclick:()=>openViewer(r)},"🧾 "+label);
+function rcOpenEl(mid,k,label,cls){
+  const r=((months[mid]||{}).rc||{})[k];
+  return el("button",{type:"button",class:cls,onclick:()=>openViewer(mid,k)},(r&&r.type==="application/pdf"?"📄 ":"🧾 ")+label);
 }
-function openViewer(r){
-  $("#viewerimg").src=rcUrl(r); $("#viewerlink").href=r.url||rcUrl(r); $("#viewer").hidden=false;
+let viewing=null;
+function rcFileName(mid,k,r){
+  const m=MONTHS.find(x=>x.id===mid), b=BILLS.find(x=>x.k===k);
+  return `Dekont - ${m?m.label:mid} - ${b?billName(b):k}.${r.type==="application/pdf"?"pdf":"jpg"}`;
 }
+function openViewer(mid,k){
+  const r=((months[mid]||{}).rc||{})[k]; if(!r) return;
+  viewing={mid,k,r};
+  const m=MONTHS.find(x=>x.id===mid), b=BILLS.find(x=>x.k===k), pdf=r.type==="application/pdf";
+  $("#viewertitle").textContent=`${b?billName(b):"Dekont"} · ${m?m.label:""}`;
+  const img=$("#viewerimg"); img.hidden=pdf; if(pdf) img.removeAttribute("src"); else img.src=rcUrl(r);
+  $("#viewerpdf").hidden=!pdf;
+  const open=viewerOpenUrl(r), lk=$("#viewerlink"); lk.hidden=!open; if(open){lk.href=open; lk.textContent=pdf?"PDF'i aç":"Tam boyut aç"}
+  const hint=viewerHint(r), h=$("#viewerhint"); h.textContent=hint; h.hidden=!hint;
+  $("#viewerdl").textContent="İndir"; $("#viewerdl").disabled=false;
+  $("#viewer").hidden=false;
+}
+function closeViewer(){ $("#viewer").hidden=true; $("#viewerimg").removeAttribute("src"); viewing=null; }
 function rcLine(mid,k){
   const r=((months[mid]||{}).rc||{})[k], key=mid+"/"+k, can=canUpload()&&!readOnly;
   if(rcBusy===key) return el("div",{class:"rc"},el("span",{class:"rcbusy"},"Dekont yükleniyor…"));
@@ -699,7 +733,7 @@ function rcLine(mid,k){
     el("button",{type:"button",class:"rclink",onclick:()=>{rcConfirm=null;render()}},"Hayır"));
   const row=el("div",{class:"rc"});
   if(r){
-    row.append(rcOpenEl(r,"Dekontu gör","rcview"));
+    row.append(rcOpenEl(mid,k,"Dekontu gör","rcview"));
     if(can) row.append(el("button",{type:"button",class:"rclink",onclick:()=>pickReceipt(mid,k)},"değiştir"),
       el("button",{type:"button",class:"rclink",onclick:()=>{rcConfirm=key;render()}},"kaldır"));
   }else if(can){
@@ -711,7 +745,7 @@ function rcLinks(mid){
   const rc=(months[mid]||{}).rc||{}, d=months[mid]||{};
   const items=BILLS.filter(b=>rc[b.k]&&d[b.k]);
   if(!items.length) return null;
-  return el("div",{class:"rclinks"},...items.map(b=>rcOpenEl(rc[b.k],billName(b),"rcview")));
+  return el("div",{class:"rclinks"},...items.map(b=>rcOpenEl(mid,b.k,billName(b),"rcview")));
 }
 function shrinkImage(file){
   return new Promise(res=>{
@@ -938,8 +972,9 @@ $("#feeform").addEventListener("submit",async e=>{
 });
 $("#shareclose").addEventListener("click",()=>{$("#share").hidden=true});
 $("#miniclose").addEventListener("click",hideMini);
-$("#viewerclose").addEventListener("click",()=>{$("#viewer").hidden=true;$("#viewerimg").removeAttribute("src")});
-$("#viewer").addEventListener("click",e=>{if(e.target.id==="viewer"){$("#viewer").hidden=true;$("#viewerimg").removeAttribute("src")}});
+$("#viewerclose").addEventListener("click",closeViewer);
+$("#viewer").addEventListener("click",e=>{if(e.target.id==="viewer") closeViewer()});
+$("#viewerdl").addEventListener("click",()=>{ if(viewing) downloadReceipt(viewing.mid,viewing.k,viewing.r) });
 let drawerOpen=false; try{drawerOpen=localStorage.getItem("ev-drawer")==="1"}catch(e){}
 function setDrawer(o){drawerOpen=o;$("#needgrid").classList.toggle("open",o);$("#drawerbtn").setAttribute("aria-expanded",String(o));
   $("#drawerbtn").setAttribute("aria-label",o?"Kısayolları kapat":"Kısayolları aç");try{localStorage.setItem("ev-drawer",o?"1":"0")}catch(e){}}
